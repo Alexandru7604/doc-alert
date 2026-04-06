@@ -1,0 +1,17 @@
+{
+  "name": "DOC Alert",
+  "short_name": "DOC Alert",
+  "description": "Gestionează documentele familiei tale",
+  "start_url": "/doc-alert/",
+  "scope": "/doc-alert/",
+  "display": "standalone",
+  "background_color": "#f5d070",
+  "theme_color": "#b07800",
+  "icons": [
+    {
+      "src": "https://raw.githubusercontent.com/Alexandru7604/doc-alert/main/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png"
+    }
+  ]
+}
