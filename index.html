@@ -345,7 +345,7 @@ const VAPID_PUBLIC = 'BBbtbavvZt3aEf9RzRYIGTFo5zoBxcEEbrSN8K_6Y6JuaK1yz-bv_8nZzq
 
 async function init() {
   if ('serviceWorker' in navigator) {
-    try { await navigator.serviceWorker.register('/sw.js'); } catch(e) { console.warn('SW:', e); }
+    try { const swPath = location.hostname.includes('github.io') ? '/doc-alert/sw.js' : '/sw.js'; await navigator.serviceWorker.register(swPath); } catch(e) { console.warn('SW:', e); toast('SW err: '+e.message); }
   }
   const { data: { session } } = await sb.auth.getSession();
   if (session) { user = session.user; showScreen('main'); loadMembers(); initPush(); }
