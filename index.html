@@ -770,6 +770,15 @@ function togglePass(id, btn) {
 }
 
 init();
+  if ('serviceWorker' in navigator) {
+  navigator.serviceWorker.ready.then(reg => {
+    setInterval(() => {
+      if (reg.active) {
+        reg.active.postMessage("check-docs")
+      }
+    }, 60000)
+  })
+}
 </script>
 </body>
 </html>
