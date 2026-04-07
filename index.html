@@ -30,7 +30,6 @@
   body { font-family: 'Segoe UI', system-ui, sans-serif; background: radial-gradient(ellipse at 52% 35%, #fff8e0 0%, #f5d070 40%, #e09018 100%) fixed; color: var(--text); min-height: 100vh; max-width: 480px; margin: 0 auto; position: relative; }
   .screen { position: relative; z-index: 1; display: none; min-height: 100vh; flex-direction: column; background: transparent; }
   .screen.active { display: flex; }
-
   @keyframes waveFloat1 { 0%,100% { opacity: 0.72; transform: translateY(0px); } 50% { opacity: 0.85; transform: translateY(-12px); } }
   @keyframes waveFloat2 { 0%,100% { opacity: 0.65; transform: translateY(0px); } 50% { opacity: 0.78; transform: translateY(10px); } }
   @keyframes sparkleAnim { 0%,100% { opacity: 0.2; transform: scale(0.5); } 50% { opacity: 1; transform: scale(1); } }
@@ -59,7 +58,6 @@
   .login-switch { text-align: center; margin-top: 16px; font-size: 14px; color: var(--text-light); }
   .login-switch a { color: var(--accent); font-weight: 600; cursor: pointer; }
   .error-msg { background: #fff0ee; color: var(--red); border-radius: 10px; padding: 10px 14px; font-size: 14px; margin-bottom: 16px; display: none; }
-
   /* HEADER */
   .app-header { background: rgba(255,255,255,0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 16px 20px 12px; display: flex; align-items: center; justify-content: space-between; box-shadow: 0 2px 12px rgba(160,110,0,0.15); position: sticky; top: 0; z-index: 100; }
   .app-header h2 { font-size: 20px; font-weight: 800; color: #7a5200; }
@@ -67,7 +65,6 @@
   .btn-logout:hover { color: var(--red); border-color: var(--red); }
   .btn-notif { background: linear-gradient(135deg, #b07800, #d4a000); border: none; cursor: pointer; color: white; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: var(--pill); display: none; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(160,110,0,0.35); }
   @media (max-width: 600px) { .btn-notif.visible { display: flex; } }
-
   /* TABS */
   .tabs-wrapper { position: relative; }
   .tabs-container { padding: 14px 16px 0; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; align-items: center; background: rgba(255,255,255,0.35); }
@@ -77,7 +74,6 @@
   .tab-opt { background: none; border: none; color: rgba(255,255,255,0.8); font-size: 16px; cursor: pointer; padding: 0; line-height: 1; display: none; }
   .tab-pill.active .tab-opt { display: inline; }
   .btn-add-member { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: white; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; box-shadow: 0 4px 12px rgba(108,92,231,0.3); }
-
   /* CONTEXT MENU */
   .tab-context { position: fixed; background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); overflow: hidden; z-index: 500; min-width: 150px; display: none; }
   .tab-context.open { display: block; }
@@ -85,14 +81,11 @@
   .tab-ctx-item:last-child { border-bottom: none; }
   .tab-ctx-item:hover { background: var(--bg); }
   .tab-ctx-item.danger { color: var(--red); }
-
   .main-content { padding: 16px; flex: 1; padding-bottom: 88px; }
   .member-name { font-size: 22px; font-weight: 800; color: var(--text); margin-bottom: 16px; }
   .btn-add-doc-fixed { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); width: calc(100% - 32px); max-width: 448px; padding: 16px; background: rgba(155,102,0,0.9); color: white; border: none; border-radius: var(--pill); font-size: 16px; font-weight: 700; cursor: pointer; box-shadow: 0 6px 24px rgba(140,90,0,0.42); z-index: 200; transition: background 0.2s; display: none; }
   .btn-add-doc-fixed:hover { background: var(--accent-dark); }
   .btn-add-doc-fixed.visible { display: block; }
-
-
   .doc-card { background: rgba(255,255,255,0.78); backdrop-filter: blur(10px); -webkit-backdrop-filter: blur(10px); border-radius: var(--radius); padding: 16px 18px; margin-bottom: 12px; box-shadow: var(--shadow); display: flex; align-items: center; justify-content: space-between; cursor: pointer; transition: transform 0.15s; border: 2px solid transparent; }
   .doc-card:hover { transform: translateY(-2px); }
   .doc-card.urgent { background: rgba(255,235,225,0.88); border-color: var(--red); box-shadow: 0 2px 16px rgba(225,112,85,0.18); }
@@ -110,7 +103,6 @@
   .btn-add-doc:hover { background: var(--accent); color: white; border-style: solid; }
   .empty-state { text-align: center; padding: 48px 24px; color: var(--text-light); }
   .empty-icon { font-size: 48px; margin-bottom: 12px; }
-
   /* DOC SCREEN */
   #screen-doc { background: rgba(255,248,215,0.6); }
   .doc-header { background: rgba(255,255,255,0.72); backdrop-filter: blur(14px); -webkit-backdrop-filter: blur(14px); padding: 16px 20px; display: flex; align-items: center; gap: 12px; box-shadow: 0 2px 12px rgba(160,110,0,0.12); }
@@ -119,7 +111,6 @@
   .doc-form { padding: 20px 16px; flex: 1; overflow-y: auto; }
   .sec-label { font-size: 11px; font-weight: 700; color: var(--text-light); text-transform: uppercase; letter-spacing: 1px; margin: 20px 0 10px; }
   .sec-label:first-child { margin-top: 0; }
-
   .type-display { background: var(--white); border: 2px solid var(--border); border-radius: 12px; padding: 12px 16px; display: flex; align-items: center; justify-content: space-between; cursor: pointer; font-size: 15px; color: var(--text); transition: border-color 0.2s; }
   .type-display.ph { color: var(--text-light); }
   .type-display:hover { border-color: var(--accent); }
@@ -133,7 +124,6 @@
   .type-item:last-child { border-bottom: none; }
   .type-item:hover { background: var(--bg); }
   .type-item.sel { color: var(--accent); font-weight: 700; }
-
   .date-input { width: 100%; padding: 12px 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 16px; color: var(--text); background: var(--white); outline: none; transition: border-color 0.2s; }
   .date-input:focus { border-color: var(--accent); }
   .alert-msg { border-radius: 12px; padding: 14px 16px; font-size: 15px; font-weight: 600; margin-top: 10px; display: none; line-height: 1.4; }
@@ -141,7 +131,6 @@
   .alert-msg.danger { background: #ffe5e0; border: 2px solid var(--red); color: #c0392b; animation: pulse-border 1.5s infinite; }
   .alert-msg.ok { background: #d4f7ee; border: 2px solid var(--green); color: #00695c; }
   @keyframes pulse-border { 0%,100% { box-shadow: 0 0 0 0 rgba(225,112,85,0.3); } 50% { box-shadow: 0 0 0 4px rgba(225,112,85,0); } }
-
   .days-row { display: flex; gap: 8px; flex-wrap: wrap; }
   .day-btn { padding: 8px 16px; border-radius: var(--pill); border: 2px solid var(--border); background: var(--white); color: var(--text-light); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
   .day-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
@@ -152,13 +141,11 @@
   .mentiuni-input:focus { border-color: var(--accent); }
   .char-count { font-size: 11px; color: var(--text-light); text-align: right; margin-top: 4px; }
   .doc-card-mentiuni { font-size: 12px; color: #7a5000; margin-top: 4px; font-weight: 600; background: rgba(220,170,40,0.2); display: inline-block; padding: 2px 8px; border-radius: 8px; }
-
   .doc-actions { display: flex; gap: 10px; margin-top: 24px; padding-bottom: 40px; }
   .btn-save { flex: 1; padding: 14px; background: var(--accent); color: white; border: none; border-radius: var(--pill); font-size: 15px; font-weight: 700; cursor: pointer; }
   .btn-save:hover { background: var(--accent-dark); }
   .btn-del { padding: 14px 20px; background: white; color: var(--red); border: 2px solid var(--red); border-radius: var(--pill); font-size: 15px; font-weight: 700; cursor: pointer; }
   .btn-del:hover { background: var(--red); color: white; }
-
   /* MODAL */
   .overlay { position: fixed; inset: 0; background: rgba(0,0,0,0.5); display: none; align-items: center; justify-content: center; z-index: 1000; padding: 24px; }
   .overlay.open { display: flex; }
@@ -171,7 +158,6 @@
   .btn-cancel { flex: 1; padding: 12px; background: var(--bg); color: var(--text-light); border: none; border-radius: var(--pill); font-size: 15px; font-weight: 600; cursor: pointer; }
   .btn-confirm { flex: 1; padding: 12px; background: var(--accent); color: white; border: none; border-radius: var(--pill); font-size: 15px; font-weight: 700; cursor: pointer; }
   .btn-delete-red { flex: 1; padding: 12px; background: var(--red); color: white; border: none; border-radius: var(--pill); font-size: 15px; font-weight: 700; cursor: pointer; }
-
   /* LOADING & TOAST */
   .loading { display: flex; align-items: center; justify-content: center; padding: 40px; }
   .spinner { width: 36px; height: 36px; border: 3px solid var(--border); border-top-color: var(--accent); border-radius: 50%; animation: spin 0.8s linear infinite; }
@@ -181,7 +167,6 @@
 </style>
 </head>
 <body>
-
 <!-- LOGIN -->
 <div id="screen-login" class="screen active">
   <div class="login-logo">
@@ -215,7 +200,6 @@
     </div>
   </div>
 </div>
-
 <!-- MAIN -->
 <div id="screen-main" class="screen">
   <div class="app-header">
@@ -237,7 +221,6 @@
   </div>
 </div>
 <button class="btn-add-doc-fixed" id="btn-add-doc-fixed" onclick="openNewDoc()">+ Adaugă document</button>
-
 <!-- DOC SCREEN -->
 <div id="screen-doc" class="screen">
   <div class="doc-header">
@@ -255,15 +238,12 @@
         <button class="btn-add-type" onclick="addCustomType()">+ Add</button>
       </div>
     </div>
-
     <div class="sec-label">Mențiuni *</div>
     <textarea class="mentiuni-input" id="doc-mentiuni" rows="3" maxlength="200" placeholder="ex: Nr. înmatriculare, nr. serie, observații..." oninput="updateCharCount()"></textarea>
     <div class="char-count"><span id="char-count">0</span>/200</div>
-
     <div class="sec-label">Dată expirare</div>
     <input type="date" class="date-input" id="doc-expiry" onchange="updateMsg()">
     <div class="alert-msg" id="alert-msg"></div>
-
     <div class="sec-label">Prima alertă (zile înainte)</div>
     <div class="days-row">
       <button class="day-btn" data-d="10" onclick="selDays(10)">10 zile</button>
@@ -272,7 +252,6 @@
       <button class="day-btn" data-d="30" onclick="selDays(30)">30 zile</button>
     </div>
     <p class="hint">📱 După prima alertă, vei primi notificare zilnică până actualizezi documentul</p>
-
     <div class="sec-label">Ora notificare</div>
     <select class="time-input" id="notify-time">
       <option value="06:00">06:00</option>
@@ -293,13 +272,11 @@
       <option value="21:00">21:00</option>
       <option value="22:00">22:00</option>
     </select>
-
     <div class="doc-actions" id="doc-actions">
       <button class="btn-save" onclick="saveDoc()">💾 Salvează</button>
     </div>
   </div>
 </div>
-
 <!-- MODALS -->
 <div class="overlay" id="m-add-member">
   <div class="modal">
@@ -312,7 +289,6 @@
     </div>
   </div>
 </div>
-
 <div class="overlay" id="m-rename">
   <div class="modal">
     <h3>✏️ Redenumește</h3>
@@ -324,7 +300,6 @@
     </div>
   </div>
 </div>
-
 <div class="overlay" id="m-del-member">
   <div class="modal">
     <h3>🗑️ Șterge membru</h3>
@@ -335,7 +310,6 @@
     </div>
   </div>
 </div>
-
 <div class="overlay" id="m-del-doc">
   <div class="modal">
     <h3>🗑️ Șterge document</h3>
@@ -346,21 +320,16 @@
     </div>
   </div>
 </div>
-
 <div class="toast" id="toast"></div>
-
 <script>
 const SUPA_URL = 'https://fyxcgjvsvjfshbaepyic.supabase.co';
 const SUPA_KEY = 'sb_publishable_xtJuj_NKtzBc62bC4vkS7w_GkQousng';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
-
 let user = null, members = [], currentMember = null, currentDocId = null;
 let selType = null, selDaysVal = 20, ctxMember = null;
 const DEFAULT_TYPES = ['CI','ITP','Impozit','Pașaport','PC','RCA','Rovinietă'];
 let customTypes = [];
-
 const VAPID_PUBLIC = 'BBbtbavvZt3aEf9RzRYIGTFo5zoBxcEEbrSN8K_6Y6JuaK1yz-bv_8nZzqFVDV5ixT_JHkpec7sQihnYkw3QS58';
-
 async function init() {
   if ('serviceWorker' in navigator) {
     try { const swPath = location.hostname.includes('github.io') ? '/doc-alert/sw.js' : '/sw.js'; await navigator.serviceWorker.register(swPath); } catch(e) { console.warn('SW:', e); toast('SW err: '+e.message); }
@@ -372,14 +341,12 @@ async function init() {
     else if (ev === 'SIGNED_OUT') { user = null; showScreen('login'); }
   });
 }
-
 function urlBase64ToUint8Array(b) {
   const pad = '='.repeat((4 - b.length % 4) % 4);
   const base64 = (b + pad).replace(/-/g, '+').replace(/_/g, '/');
   const raw = atob(base64);
   return new Uint8Array([...raw].map(c => c.charCodeAt(0)));
 }
-
 async function initPush() {
   if (!('PushManager' in window) || !('serviceWorker' in navigator)) return;
   try {
@@ -389,17 +356,10 @@ async function initPush() {
       document.getElementById('btn-notif').classList.add('visible');
       return;
     }
-    // perm === 'granted' - incearca sa se aboneze
-    const reg = await navigator.serviceWorker.ready;
-    const sub = await reg.pushManager.getSubscription();
-    if (!sub) {
-      document.getElementById('btn-notif').classList.add('visible');
-    } else {
-      await subscribePush();
-    }
+    // perm === 'granted' - reînnoiește token-ul la fiecare login
+    await subscribePush();
   } catch(e) { console.warn('Push init:', e); }
 }
-
 async function askPushPermission() {
   const perm = await Notification.requestPermission();
   if (perm === 'granted') {
@@ -410,17 +370,19 @@ async function askPushPermission() {
     toast('⚠️ Notificările au fost refuzate');
   }
 }
-
 async function subscribePush() {
   try {
     const reg = await navigator.serviceWorker.ready;
-    let sub = await reg.pushManager.getSubscription();
-    if (!sub) {
-      sub = await reg.pushManager.subscribe({
-        userVisibleOnly: true,
-        applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
-      });
+    // Dezabonează subscripția veche dacă există
+    const existingSub = await reg.pushManager.getSubscription();
+    if (existingSub) {
+      await existingSub.unsubscribe();
     }
+    // Creează subscripție nouă
+    const sub = await reg.pushManager.subscribe({
+      userVisibleOnly: true,
+      applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
+    });
     const subJson = sub.toJSON();
     const payload = {
       user_id: user.id,
@@ -434,7 +396,6 @@ async function subscribePush() {
       toast('❌ Eroare salvare: ' + error.message);
       console.error(error);
     } else {
-      toast('✅ Notificări activate!');
       document.getElementById('btn-notif').classList.remove('visible');
     }
   } catch(e) {
@@ -442,14 +403,12 @@ async function subscribePush() {
     console.error(e);
   }
 }
-
 function showScreen(n) {
   document.querySelectorAll('.screen').forEach(s => s.classList.remove('active'));
   document.getElementById('screen-' + n).classList.add('active');
   const fixBtn = document.getElementById('btn-add-doc-fixed');
   if (fixBtn) fixBtn.classList.toggle('visible', n === 'main');
 }
-
 // AUTH
 function showLogin() { toggle3('form-login', 'form-register', 'form-forgot'); clearErr(); }
 function showRegister() { toggle3('form-register', 'form-login', 'form-forgot'); clearErr(); }
@@ -461,7 +420,6 @@ function toggle3(show, h1, h2) {
 }
 function showErr(m) { const e = document.getElementById('login-error'); e.textContent = m; e.style.display = 'block'; }
 function clearErr() { document.getElementById('login-error').style.display = 'none'; }
-
 async function doLogin() {
   const email = document.getElementById('l-email').value.trim();
   const pass = document.getElementById('l-pass').value;
@@ -472,7 +430,6 @@ async function doLogin() {
   btn.disabled = false; btn.textContent = 'Intră în cont';
   if (error) showErr('Email sau parolă incorectă');
 }
-
 async function doRegister() {
   const e = document.getElementById('r-email').value.trim();
   const p1 = document.getElementById('r-pass').value;
@@ -484,7 +441,6 @@ async function doRegister() {
   if (error) showErr(error.message);
   else { toast('✅ Cont creat! Verifică emailul.'); showLogin(); }
 }
-
 async function doForgot() {
   const e = document.getElementById('f-email').value.trim();
   if (!e) return showErr('Introdu adresa de email');
@@ -492,9 +448,7 @@ async function doForgot() {
   if (error) showErr(error.message);
   else { toast('📧 Email trimis! Verifică căsuța poștală.'); showLogin(); }
 }
-
 async function doLogout() { await sb.auth.signOut(); toast('La revedere! 👋'); }
-
 // MEMBERS
 async function loadMembers() {
   const { data } = await sb.from('members').select('*').order('created_at', { ascending: true });
@@ -509,7 +463,6 @@ async function loadMembers() {
       <p>Adaugă primul membru al familiei<br>apăsând butonul <strong>+</strong></p></div>`;
   }
 }
-
 function renderTabs() {
   const c = document.getElementById('tabs-container');
   c.innerHTML = '';
@@ -521,11 +474,9 @@ function renderTabs() {
     let lt;
     p.addEventListener('touchstart', () => { lt = setTimeout(() => openCtx({ clientX: p.getBoundingClientRect().left, clientY: p.getBoundingClientRect().bottom }, m.id), 600); }, { passive: true });
     p.addEventListener('touchend', () => clearTimeout(lt), { passive: true });
-
     const nameSpan = document.createElement('span');
     nameSpan.textContent = m.name;
     p.appendChild(nameSpan);
-
     if (m.id === currentMember) {
       const optBtn = document.createElement('button');
       optBtn.className = 'tab-opt';
@@ -534,7 +485,6 @@ function renderTabs() {
       optBtn.onclick = e => { e.stopPropagation(); openCtx(e, m.id); };
       p.appendChild(optBtn);
     }
-
     c.appendChild(p);
   });
   const add = document.createElement('button');
@@ -543,7 +493,6 @@ function renderTabs() {
   add.onclick = () => openModal('m-add-member');
   c.appendChild(add);
 }
-
 function openCtx(e, memberId) {
   ctxMember = memberId;
   const ctx = document.getElementById('tab-ctx');
@@ -552,14 +501,12 @@ function openCtx(e, memberId) {
   ctx.classList.add('open');
   setTimeout(() => document.addEventListener('click', () => ctx.classList.remove('open'), { once: true }), 100);
 }
-
 function selMember(id) {
   currentMember = id;
   document.getElementById('tab-ctx').classList.remove('open');
   renderTabs();
   loadDocs(id);
 }
-
 async function addMember() {
   const name = document.getElementById('new-member-name').value.trim();
   if (!name) return;
@@ -573,7 +520,6 @@ async function addMember() {
     if (members.length > 0) selMember(members[members.length - 1].id);
   }
 }
-
 function renameMember() {
   document.getElementById('tab-ctx').classList.remove('open');
   const m = members.find(x => x.id === ctxMember);
@@ -581,7 +527,6 @@ function renameMember() {
   document.getElementById('rename-inp').value = m.name;
   openModal('m-rename');
 }
-
 async function saveRename() {
   const name = document.getElementById('rename-inp').value.trim();
   if (!name) return;
@@ -590,14 +535,12 @@ async function saveRename() {
   toast('✅ Redenumit!');
   await loadMembers();
 }
-
 function confirmDelMember() {
   document.getElementById('tab-ctx').classList.remove('open');
   const m = members.find(x => x.id === ctxMember);
   if (m) document.getElementById('del-member-msg').textContent = `Ștergi "${m.name}"? Vor fi șterse și toate documentele sale.`;
   openModal('m-del-member');
 }
-
 async function deleteMember() {
   await sb.from('members').delete().eq('id', ctxMember);
   closeModal('m-del-member');
@@ -605,7 +548,6 @@ async function deleteMember() {
   currentMember = null;
   await loadMembers();
 }
-
 // DOCS
 async function loadDocs(memberId) {
   const m = members.find(x => x.id === memberId);
@@ -633,16 +575,13 @@ async function loadDocs(memberId) {
   c.innerHTML = html;
   fixBtn.classList.add('visible');
 }
-
 function daysUntil(d) {
   const t = new Date(); t.setHours(0,0,0,0);
   return Math.ceil((new Date(d) - t) / 86400000);
 }
-
 function fmtDate(d) {
   return new Date(d).toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' });
 }
-
 // DOC FORM
 function openNewDoc() {
   currentDocId = null; selType = null; selDaysVal = 20;
@@ -660,7 +599,6 @@ function openNewDoc() {
   buildTypeList();
   showScreen('doc');
 }
-
 async function openDoc(id) {
   currentDocId = id;
   const { data } = await sb.from('documents').select('*').eq('id', id).single();
@@ -682,7 +620,6 @@ async function openDoc(id) {
   buildTypeList();
   showScreen('doc');
 }
-
 function buildTypeList() {
   const list = document.getElementById('type-list');
   list.querySelectorAll('.type-item').forEach(e => e.remove());
@@ -694,9 +631,7 @@ function buildTypeList() {
     list.appendChild(d);
   });
 }
-
 function toggleTypeList() { document.getElementById('type-list').classList.toggle('open'); }
-
 function pickType(t) {
   selType = t;
   document.getElementById('type-text').textContent = t;
@@ -705,7 +640,6 @@ function pickType(t) {
   buildTypeList();
   updateMsg();
 }
-
 function addCustomType() {
   const inp = document.getElementById('new-type-inp');
   const v = inp.value.trim();
@@ -714,12 +648,10 @@ function addCustomType() {
   inp.value = '';
   pickType(v);
 }
-
 function selDays(d) {
   selDaysVal = d;
   document.querySelectorAll('.day-btn').forEach(b => b.classList.toggle('active', parseInt(b.dataset.d) === d));
 }
-
 function updateMsg() {
   const exp = document.getElementById('doc-expiry').value;
   const el = document.getElementById('alert-msg');
@@ -732,7 +664,6 @@ function updateMsg() {
   else if (days <= 30) { el.className = 'alert-msg warn'; el.textContent = `⚠️ Atenție! ${name} expiră în ${days} zile`; }
   else { el.className = 'alert-msg ok'; el.textContent = `✅ ${name} expiră în ${days} zile — ești în regulă!`; }
 }
-
 async function saveDoc() {
   if (!selType) return toast('⚠️ Selectează tipul documentului');
   const exp = document.getElementById('doc-expiry').value;
@@ -748,16 +679,13 @@ async function saveDoc() {
   if (err) toast('❌ Eroare: ' + err.message);
   else { toast(currentDocId ? '✅ Document modificat!' : '✅ Document salvat!'); goBack(); }
 }
-
 async function deleteDoc() {
   closeModal('m-del-doc');
   await sb.from('documents').delete().eq('id', currentDocId);
   toast('🗑️ Document șters');
   goBack();
 }
-
 function goBack() { showScreen('main'); loadDocs(currentMember); }
-
 // MODAL
 function openModal(id) {
   document.getElementById(id).classList.add('open');
@@ -768,25 +696,21 @@ function closeModal(id) { document.getElementById(id).classList.remove('open'); 
 document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); }));
 document.getElementById('new-member-name').addEventListener('keydown', e => { if (e.key === 'Enter') addMember(); });
 document.getElementById('rename-inp').addEventListener('keydown', e => { if (e.key === 'Enter') saveRename(); });
-
 // TOAST
 function toast(msg) {
   const t = document.getElementById('toast');
   t.textContent = msg; t.classList.add('show');
   setTimeout(() => t.classList.remove('show'), 2800);
 }
-
 function updateCharCount() {
   const val = document.getElementById('doc-mentiuni').value;
   document.getElementById('char-count').textContent = val.length;
 }
-
 function togglePass(id, btn) {
   const inp = document.getElementById(id);
   if (inp.type === 'password') { inp.type = 'text'; btn.textContent = '🙈'; }
   else { inp.type = 'password'; btn.textContent = '👁️'; }
 }
-
 init();
 </script>
 </body>
