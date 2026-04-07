@@ -404,13 +404,25 @@ async function subscribePush() {
       });
     }
     const subJson = sub.toJSON();
-    const { error } = await sb.from('push_subscriptions').upsert({
+    const payload = {
       user_id: user.id,
+      endpoint: sub.endpoint,
       subscription: subJson
-    }, { onConflict: 'user_id' });
-    if (error) { toast('❌ Eroare salvare: ' + error.message); console.error(error); }
-    else { toast('✅ Notificări activate!'); document.getElementById('btn-notif').classList.remove('visible'); }
-  } catch(e) { toast('❌ Eroare push: ' + e.message); console.error(e); }
+    };
+    const { error } = await sb
+      .from('push_subscriptions')
+      .upsert(payload, { onConflict: 'endpoint' });
+    if (error) {
+      toast('❌ Eroare salvare: ' + error.message);
+      console.error(error);
+    } else {
+      toast('✅ Notificări activate!');
+      document.getElementById('btn-notif').classList.remove('visible');
+    }
+  } catch(e) {
+    toast('❌ Eroare push: ' + e.message);
+    console.error(e);
+  }
 }
 
 function showScreen(n) {
