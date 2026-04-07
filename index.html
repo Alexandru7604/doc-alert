@@ -146,7 +146,7 @@
   .day-btn { padding: 8px 16px; border-radius: var(--pill); border: 2px solid var(--border); background: var(--white); color: var(--text-light); font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
   .day-btn.active { background: var(--accent); border-color: var(--accent); color: white; }
   .hint { font-size: 12px; color: var(--text-light); margin-top: 8px; }
-  .time-input { padding: 10px 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 16px; color: var(--text); background: var(--white); outline: none; }
+  .time-input { padding: 10px 16px; border: 2px solid var(--border); border-radius: 12px; font-size: 16px; color: var(--text); background: var(--white); outline: none; cursor: pointer; }
   .time-input:focus { border-color: var(--accent); }
   .mentiuni-input { width: 100%; padding: 11px 14px; border: 2px solid var(--border); border-radius: 12px; font-size: 15px; color: var(--text); background: var(--white); outline: none; resize: none; font-family: inherit; line-height: 1.4; }
   .mentiuni-input:focus { border-color: var(--accent); }
@@ -274,7 +274,25 @@
     <p class="hint">📱 După prima alertă, vei primi notificare zilnică până actualizezi documentul</p>
 
     <div class="sec-label">Ora notificare</div>
-    <input type="time" class="time-input" id="notify-time" value="11:00">
+    <select class="time-input" id="notify-time">
+      <option value="06:00">06:00</option>
+      <option value="07:00">07:00</option>
+      <option value="08:00">08:00</option>
+      <option value="09:00">09:00</option>
+      <option value="10:00">10:00</option>
+      <option value="11:00" selected>11:00</option>
+      <option value="12:00">12:00</option>
+      <option value="13:00">13:00</option>
+      <option value="14:00">14:00</option>
+      <option value="15:00">15:00</option>
+      <option value="16:00">16:00</option>
+      <option value="17:00">17:00</option>
+      <option value="18:00">18:00</option>
+      <option value="19:00">19:00</option>
+      <option value="20:00">20:00</option>
+      <option value="21:00">21:00</option>
+      <option value="22:00">22:00</option>
+    </select>
 
     <div class="doc-actions" id="doc-actions">
       <button class="btn-save" onclick="saveDoc()">💾 Salvează</button>
@@ -652,7 +670,7 @@ async function openDoc(id) {
   document.getElementById('type-text').textContent = data.doc_type;
   document.getElementById('type-display').className = 'type-display';
   document.getElementById('doc-expiry').value = data.expiry_date;
-  document.getElementById('notify-time').value = data.notify_time || (String(data.notify_hour).padStart(2,'0') + ':00');
+  const savedHour = data.notify_hour || parseInt((data.notify_time || '11:00').split(':')[0], 10); document.getElementById('notify-time').value = String(savedHour).padStart(2,'0') + ':00';
   document.getElementById('doc-mentiuni').value = data.mentiuni || '';
   document.getElementById('char-count').textContent = (data.mentiuni || '').length;
   document.getElementById('type-list').classList.remove('open');
@@ -770,15 +788,6 @@ function togglePass(id, btn) {
 }
 
 init();
-  if ('serviceWorker' in navigator) {
-  navigator.serviceWorker.ready.then(reg => {
-    setInterval(() => {
-      if (reg.active) {
-        reg.active.postMessage("check-docs")
-      }
-    }, 60000)
-  })
-}
 </script>
 </body>
 </html>
