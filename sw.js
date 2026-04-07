@@ -71,3 +71,27 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
+
+
+self.addEventListener("message", async (event) => {
+  if (event.data === "check-docs") {
+    try {
+      const res = await fetch("https://fxcgjvsvjfshbaepyic.supabase.co/functions/v1/send-doc-alerts", {
+        method: "POST"
+      })
+
+      const data = await res.json()
+
+      if (data.notifications && data.notifications.length > 0) {
+        for (const n of data.notifications) {
+          self.registration.showNotification(n.title, {
+            body: n.body,
+            icon: "icon-192.png"
+          })
+        }
+      }
+    } catch (err) {
+      console.error("Error checking docs:", err)
+    }
+  }
+})
