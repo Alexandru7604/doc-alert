@@ -329,11 +329,32 @@ async function initPush() {
   try {
     const perm = Notification.permission;
     if (perm === 'denied') { toast('⚠️ Notificările sunt blocate în setări'); return; }
-    if (perm === 'default') { document.getElementById('btn-notif').classList.add('visible'); return; }
-    // perm === 'granted' — așteptăm SW să fie gata
-    await navigator.serviceWorker.ready;
-    await subscribePush();
-  } catch(e) { console.warn('Push init:', e); }
+    
+    // Verifică dacă există deja subscription salvat în Supabase pentru acest user
+    const reg = await navigator.serviceWorker.ready;
+    const existingSub = await reg.pushManager.getSubscription();
+    if (existingSub) {
+      const { data: existing } = await sb
+        .from('push_subscriptions')
+        .select('id')
+        .eq('endpoint', existingSub.endpoint)
+        .eq('user_id', user.id)
+        .maybeSingle();
+      if (existing) {
+        // Subscription confirmat în Supabase — totul ok
+        document.getElementById('btn-notif').classList.remove('visible');
+        return;
+      }
+    }
+    
+    // Nu există subscription valid pentru acest user — afișează butonul
+    document.getElementById('btn-notif').classList.add('visible');
+    
+    // Dacă permisiunea e deja granted, încearcă automat
+    if (perm === 'granted') {
+      await subscribePush();
+    }
+  } catch(e) { console.warn('Push init:', e); document.getElementById('btn-notif').classList.add('visible'); }
 }
 
 async function askPushPermission() {
