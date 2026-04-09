@@ -58,7 +58,7 @@
   .btn-logout { background: none; border: 2px solid var(--border); cursor: pointer; color: var(--text-light); font-size: 13px; font-weight: 600; padding: 6px 12px; border-radius: var(--pill); display: flex; align-items: center; gap: 6px; transition: all 0.2s; }
   .btn-logout:hover { color: var(--red); border-color: var(--red); }
   .btn-notif { background: linear-gradient(135deg, #b07800, #d4a000); border: none; cursor: pointer; color: white; font-size: 13px; font-weight: 700; padding: 6px 12px; border-radius: var(--pill); display: none; align-items: center; gap: 6px; box-shadow: 0 2px 8px rgba(160,110,0,0.35); }
-  @media (max-width: 600px) { .btn-notif.visible { display: flex; } }
+  .btn-notif.visible { display: flex; }
   .tabs-wrapper { position: relative; }
   .tabs-container { padding: 14px 16px 0; display: flex; gap: 8px; overflow-x: auto; scrollbar-width: none; align-items: center; background: rgba(255,255,255,0.35); }
   .tabs-container::-webkit-scrollbar { display: none; }
@@ -330,7 +330,8 @@ async function initPush() {
     const perm = Notification.permission;
     if (perm === 'denied') { toast('⚠️ Notificările sunt blocate în setări'); return; }
     if (perm === 'default') { document.getElementById('btn-notif').classList.add('visible'); return; }
-    // perm === 'granted'
+    // perm === 'granted' — așteptăm SW să fie gata
+    await navigator.serviceWorker.ready;
     await subscribePush();
   } catch(e) { console.warn('Push init:', e); }
 }
