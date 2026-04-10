@@ -373,44 +373,42 @@ async function subscribePush() {
     const reg = await navigator.serviceWorker.ready;
 
     // Obține subscription-ul existent din browser
-    const existingSub = await reg.pushManager.getSubscription();
+    let sub = await reg.pushManager.getSubscription();
 
-    if (existingSub) {
+    if (sub) {
       // Verifică dacă e deja salvat în Supabase pentru acest user
       const { data: existing } = await sb
         .from('push_subscriptions')
         .select('id')
-        .eq('endpoint', existingSub.endpoint)
+        .eq('endpoint', sub.endpoint)
         .eq('user_id', user.id)
         .maybeSingle();
 
       if (existing) {
-        // Există deja — nu face nimic
+        // Există deja pentru acest user — totul ok
         document.getElementById('btn-notif').classList.remove('visible');
         return;
       }
 
-      // Există în browser dar nu în Supabase — salvează-l
-      const { error } = await sb.from('push_subscriptions').upsert({
-        user_id: user.id,
-        endpoint: existingSub.endpoint,
-        subscription: existingSub.toJSON()
-      }, { onConflict: 'endpoint' });
-      if (!error) document.getElementById('btn-notif').classList.remove('visible');
-      return;
+      // Există în browser dar aparține altui user — dezabonează și recreează
+      await sub.unsubscribe();
+      sub = null;
     }
 
-    // Nu există subscription în browser — creează unul nou
-    const sub = await reg.pushManager.subscribe({
+    // Șterge orice subscripție veche a acestui user din Supabase
+    await sb.from('push_subscriptions').delete().eq('user_id', user.id);
+
+    // Creează subscripție nouă
+    sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
     });
 
-    const { error } = await sb.from('push_subscriptions').upsert({
+    const { error } = await sb.from('push_subscriptions').insert({
       user_id: user.id,
       endpoint: sub.endpoint,
       subscription: sub.toJSON()
-    }, { onConflict: 'endpoint' });
+    });
 
     if (error) { toast('❌ Eroare salvare: ' + error.message); console.error(error); }
     else { document.getElementById('btn-notif').classList.remove('visible'); }
