@@ -19,11 +19,16 @@ function getLocalDateAndHour(tz: string): { date: string; hour: number } {
   return { date: datePart, hour };
 }
 
-serve(async (_req) => {
+serve(async (req) => {
+  // Verificare Authorization — blocheaza apeluri neautorizate
+  const authHeader = req.headers.get("Authorization");
+  const cronSecret = Deno.env.get("CRON_SECRET");
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+    return new Response(JSON.stringify({ error: "Unauthorized" }), { status: 401 });
+  }
+
   const sb = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-
   const { date: today, hour: currentHour } = getLocalDateAndHour(TIMEZONE);
-
   const todayMs = new Date(today).getTime();
 
   const { data: docs, error: docsError } = await sb
@@ -95,19 +100,16 @@ serve(async (_req) => {
 
       try {
         await webpush.sendNotification(sub, payload);
-
         await sb.from("notification_log").insert({
           document_id: doc.id,
           user_id: doc.user_id,
           subscription_endpoint: endpoint,
           sent_for_date: today,
         });
-
         results.push({ doc: doc.doc_type, endpoint, status: "sent" });
       } catch (err: unknown) {
         const status = (err as { statusCode?: number }).statusCode;
         results.push({ doc: doc.doc_type, endpoint, status: status ?? "error" });
-
         if (status === 410 || status === 404) {
           await sb.from("push_subscriptions").delete().eq("endpoint", endpoint);
         }
