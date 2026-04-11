@@ -151,7 +151,7 @@ serve(async (req) => {
         title,
         body,
         tag: `doc-${doc.id}`,
-        url: "/doc-alert/",
+        url: `/doc-alert/?member=${doc.member_id}&doc=${doc.id}`,
       });
 
       for (const subRow of subs) {
