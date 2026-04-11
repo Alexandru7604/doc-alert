@@ -64,7 +64,7 @@ function buildEmailHtml(
         </tr>
       </table>
       <div style="margin-top:24px;text-align:center;">
-        <a href="https://gabrielgeorge24.github.io/doc-alert/"
+        <a href="https://Alexandru7604.github.io/doc-alert/"
            style="display:inline-block;background:#b07800;color:#fff;text-decoration:none;padding:12px 28px;border-radius:50px;font-weight:700;font-size:15px;">
           Deschide DOC Alert
         </a>
