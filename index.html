@@ -568,6 +568,8 @@ async function loadDocs(memberId) {
   }
   c.innerHTML = html;
   fixBtn.classList.add('visible');
+  const urlDoc = new URLSearchParams(window.location.search).get('doc');
+  if (urlDoc && data && data.find(d => d.id === urlDoc)) openDoc(urlDoc);
 }
 function daysUntil(d) { const t = new Date(); t.setHours(0,0,0,0); return Math.ceil((new Date(d) - t) / 86400000); }
 function fmtDate(d) { return new Date(d).toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
