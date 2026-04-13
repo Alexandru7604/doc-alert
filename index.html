@@ -310,7 +310,15 @@ async function init() {
     } catch(e) { console.warn('SW:', e); }
   }
   const { data: { session } } = await sb.auth.getSession();
-  if (session) { user = session.user; showScreen('main'); loadMembers(); initPush(); }
+  const urlUser = new URLSearchParams(window.location.search).get('user');
+  if (session) {
+    if (urlUser && session.user.id !== urlUser) {
+      await sb.auth.signOut();
+      showErr('Acest link aparține altui cont. Loghează-te cu adresa corectă.');
+    } else {
+      user = session.user; showScreen('main'); loadMembers(); initPush();
+    }
+  }
   sb.auth.onAuthStateChange((ev, s) => {
     if (ev === 'SIGNED_IN') { user = s.user; showScreen('main'); loadMembers(); initPush(); }
     else if (ev === 'SIGNED_OUT') { user = null; showScreen('login'); }

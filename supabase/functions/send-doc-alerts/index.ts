@@ -31,6 +31,7 @@ function buildEmailHtml(
   daysLeft: number,
   memberId: string,
   docId: string,
+  userId: string,
 ): string {
   const icon = daysLeft <= 0 ? "⛔" : "⚠️";
   const statusColor = daysLeft < 0 ? "#e17055" : daysLeft === 0 ? "#e17055" : daysLeft <= 7 ? "#e6a817" : "#00b894";
@@ -66,7 +67,7 @@ function buildEmailHtml(
         </tr>
       </table>
       <div style="margin-top:24px;text-align:center;">
-        <a href="https://Alexandru7604.github.io/doc-alert/?member=${memberId}&doc=${docId}"
+        <a href="https://Alexandru7604.github.io/doc-alert/?member=${memberId}&doc=${docId}&user=${userId}"
            style="display:inline-block;background:#b07800;color:#fff;text-decoration:none;padding:12px 28px;border-radius:50px;font-weight:700;font-size:15px;">
           Deschide DOC Alert
         </a>
@@ -151,7 +152,7 @@ serve(async (req) => {
         title,
         body,
         tag: `doc-${doc.id}`,
-        url: "/doc-alert/",
+        url: `/doc-alert/?member=${doc.member_id}&doc=${doc.id}&user=${doc.user_id}`,
       });
 
       for (const subRow of subs) {
@@ -214,7 +215,7 @@ serve(async (req) => {
               to: userEmail,
               subject: title,
               text: body,
-              html: buildEmailHtml(title, memberName, doc.doc_type, doc.expiry_date, daysLeft, doc.member_id, doc.id),
+              html: buildEmailHtml(title, memberName, doc.doc_type, doc.expiry_date, daysLeft, doc.member_id, doc.id, doc.user_id),
             });
             await sb.from("notification_log").insert({
               document_id: doc.id,
