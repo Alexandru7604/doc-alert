@@ -70,8 +70,7 @@
   .tabs-container::-webkit-scrollbar { display: none; }
   .tab-pill { padding: 8px 18px; border-radius: var(--pill); border: 2px solid rgba(200,155,40,0.3); background: rgba(255,255,255,0.65); color: var(--text-light); font-size: 14px; font-weight: 600; cursor: pointer; white-space: nowrap; transition: all 0.2s; flex-shrink: 0; display: flex; align-items: center; gap: 4px; }
   .tab-pill.active { background: rgba(160,108,0,0.88); border-color: transparent; color: white; box-shadow: 0 4px 14px rgba(140,90,0,0.38); }
-  .tab-opt { background: none; border: none; color: rgba(100,70,0,0.5); font-size: 16px; cursor: pointer; padding: 0; line-height: 1; display: inline; }
-  .tab-pill.active .tab-opt { color: rgba(255,255,255,0.8); }
+  .tab-opt { display: none; }
   .btn-add-member { width: 36px; height: 36px; border-radius: 50%; background: var(--accent); color: white; border: none; font-size: 20px; cursor: pointer; display: flex; align-items: center; justify-content: center; flex-shrink: 0; }
   .tab-context { position: fixed; background: white; border-radius: 12px; box-shadow: 0 8px 32px rgba(0,0,0,0.18); overflow: hidden; z-index: 500; min-width: 150px; display: none; }
   .tab-context.open { display: block; }
@@ -513,7 +512,10 @@ function renderTabs() {
   members.forEach(m => {
     const p = document.createElement('button');
     p.className = 'tab-pill' + (m.id === currentMember ? ' active' : '');
-    p.onclick = () => selMember(m.id);
+    p.onclick = (e) => {
+      if (currentMember === m.id) { openCtx(e, m.id); }
+      else { selMember(m.id); }
+    };
     p.oncontextmenu = e => { e.preventDefault(); openCtx(e, m.id); };
     let lt;
     p.addEventListener('touchstart', () => { lt = setTimeout(() => openCtx({ clientX: p.getBoundingClientRect().left, clientY: p.getBoundingClientRect().bottom }, m.id), 600); }, { passive: true });
