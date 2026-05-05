@@ -208,31 +208,52 @@ serve(async (req) => {
         const { data: userData } = await sb.auth.admin.getUserById(doc.user_id);
         const userEmail = userData?.user?.email;
 
-        if (userEmail) {
-          try {
-            await transporter.sendMail({
-              from: `"DOC Alert" <${GMAIL_USER}>`,
-              to: userEmail,
-              subject: title,
-              text: body,
-              html: buildEmailHtml(title, memberName, doc.doc_type, doc.expiry_date, daysLeft, doc.member_id, doc.id, doc.user_id),
-            });
-            await sb.from("notification_log").insert({
-              document_id: doc.id,
-              user_id: doc.user_id,
-              subscription_endpoint: emailKey,
-              sent_for_date: today,
-            });
-            results.push({ doc: doc.doc_type, channel: "email", to: userEmail, status: "sent" });
-          } catch (err: unknown) {
-            results.push({
-              doc: doc.doc_type,
-              channel: "email",
-              to: userEmail,
-              status: "error",
-              error: String(err),
-            });
+        // Colectează toate adresele: emailul principal + emailurile extra
+        const allEmails: string[] = [];
+        if (userEmail) allEmails.push(userEmail);
+
+        const { data: extraEmails } = await sb
+          .from("extra_emails")
+          .select("email")
+          .eq("user_id", doc.user_id);
+
+        if (extraEmails && extraEmails.length > 0) {
+          for (const row of extraEmails) {
+            if (row.email && !allEmails.includes(row.email)) {
+              allEmails.push(row.email);
+            }
           }
+        }
+
+        if (allEmails.length > 0) {
+          const htmlBody = buildEmailHtml(title, memberName, doc.doc_type, doc.expiry_date, daysLeft, doc.member_id, doc.id, doc.user_id);
+          for (const toEmail of allEmails) {
+            try {
+              await transporter.sendMail({
+                from: `"DOC Alert" <${GMAIL_USER}>`,
+                to: toEmail,
+                subject: title,
+                text: body,
+                html: htmlBody,
+              });
+              results.push({ doc: doc.doc_type, channel: "email", to: toEmail, status: "sent" });
+            } catch (err: unknown) {
+              results.push({
+                doc: doc.doc_type,
+                channel: "email",
+                to: toEmail,
+                status: "error",
+                error: String(err),
+              });
+            }
+          }
+          // Marchează ca trimis (o singură înregistrare per document per zi)
+          await sb.from("notification_log").insert({
+            document_id: doc.id,
+            user_id: doc.user_id,
+            subscription_endpoint: emailKey,
+            sent_for_date: today,
+          });
         }
       }
     }
