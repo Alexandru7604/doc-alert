@@ -688,7 +688,16 @@ async function saveDoc() {
   if (err) toast('❌ Eroare la salvare: ' + err.message);
   else { toast(currentDocId ? '✅ Document modificat!' : '✅ Document salvat!'); goBack(); }
 }
-async function deleteDoc() { closeModal('m-del-doc'); await sb.from('documents').delete().eq('id', currentDocId); toast('🗑️ Document șters'); goBack(); }
+async function deleteDoc() {
+  closeModal('m-del-doc');
+  const { error } = await sb.from('documents').delete().eq('id', currentDocId);
+  if (error) {
+    toast('❌ Eroare la ștergere: ' + error.message);
+    return;
+  }
+  toast('🗑️ Document șters');
+  goBack();
+}
 function goBack() { showScreen('main'); loadDocs(currentMember); }
 function openModal(id) { document.getElementById(id).classList.add('open'); const inp = document.querySelector('#' + id + ' input'); if (inp) setTimeout(() => inp.focus(), 100); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
