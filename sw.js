@@ -44,10 +44,14 @@ self.addEventListener('fetch', (event) => {
   if (event.request.method !== 'GET') return;
 
   const url = new URL(event.request.url);
+
+  // Nu cachăm niciodată cererile API externe (Supabase, CDN-uri)
+  if (url.origin !== self.location.origin) return;
+
   const isHtml = HTML_ASSETS.some(a => url.pathname === a || url.pathname === a + '/');
 
   if (isHtml) {
-    // Network-first pentru HTML
+    // Network-first pentru HTML — utilizatorul vede mereu versiunea nouă
     event.respondWith(
       fetch(event.request)
         .then((res) => {
@@ -58,7 +62,7 @@ self.addEventListener('fetch', (event) => {
         .catch(() => caches.match(event.request))
     );
   } else {
-    // Cache-first pentru assets statice
+    // Cache-first pentru assets statice (imagini, manifest)
     event.respondWith(
       caches.match(event.request).then((cached) => {
         if (cached) return cached;
