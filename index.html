@@ -549,7 +549,7 @@ async function addMember() {
   const name = document.getElementById('new-member-name').value.trim();
   if (!name) return;
   const { error } = await sb.from('members').insert({ user_id: user.id, name });
-  if (error) toast('❌ Eroare');
+  if (error) toast('❌ Eroare la adăugarea membrului: ' + error.message);
   else { closeModal('m-add-member'); document.getElementById('new-member-name').value = ''; toast('✅ Membru adăugat!'); await loadMembers(); if (members.length > 0) selMember(members[members.length - 1].id); }
 }
 function renameMember() {
@@ -615,7 +615,7 @@ function openNewDoc() {
   document.getElementById('char-count').textContent = '0';
   document.getElementById('alert-msg').style.display = 'none';
   document.getElementById('type-list').classList.remove('open');
-  document.querySelectorAll('.day-btn').forEach(b => b.classList.toggle('active', b.dataset.d == '20'));
+  document.querySelectorAll('.day-btn').forEach(b => b.classList.toggle('active', b.dataset.d === '20'));
   document.getElementById('doc-actions').innerHTML = `<button class="btn-save" onclick="saveDoc()">💾 Salvează</button>`;
   buildTypeList(); showScreen('doc');
 }
@@ -662,8 +662,10 @@ function updateMsg() {
   const days = daysUntil(exp);
   el.style.display = 'block';
   const name = selType || 'Documentul';
-  if (days < 0) { el.className = 'alert-msg danger'; el.textContent = `⛔ ${name} a expirat de ${Math.abs(days)} zile!`; }
+  if (days < -365) { el.className = 'alert-msg danger'; el.textContent = `⛔ ${name} a expirat de ${Math.abs(days)} zile! Verifică data introdusă.`; }
+  else if (days < 0) { el.className = 'alert-msg danger'; el.textContent = `⛔ ${name} a expirat de ${Math.abs(days)} zile!`; }
   else if (days === 0) { el.className = 'alert-msg danger'; el.textContent = `⛔ ${name} expiră AZI!`; }
+  else if (days <= 15) { el.className = 'alert-msg danger'; el.textContent = `⚠️ URGENT! ${name} expiră în ${days} zile`; }
   else if (days <= 30) { el.className = 'alert-msg warn'; el.textContent = `⚠️ Atenție! ${name} expiră în ${days} zile`; }
   else { el.className = 'alert-msg ok'; el.textContent = `✅ ${name} expiră în ${days} zile — ești în regulă!`; }
 }
@@ -676,10 +678,14 @@ async function saveDoc() {
   const notifyTime = document.getElementById('notify-time').value || '09:00';
   const hour = parseInt(notifyTime.split(':')[0]);
   const doc = { user_id: user.id, member_id: currentMember, doc_type: selType, expiry_date: exp, alert_days: selDaysVal, notify_hour: hour, notify_time: notifyTime, mentiuni };
+  // Loading state
+  const saveBtn = document.querySelector('#doc-actions .btn-save');
+  if (saveBtn) { saveBtn.disabled = true; saveBtn.textContent = '⏳ Se salvează...'; }
   let err;
   if (currentDocId) ({ error: err } = await sb.from('documents').update(doc).eq('id', currentDocId));
   else ({ error: err } = await sb.from('documents').insert(doc));
-  if (err) toast('❌ Eroare: ' + err.message);
+  if (saveBtn) { saveBtn.disabled = false; saveBtn.textContent = currentDocId ? '✏️ Modifică' : '💾 Salvează'; }
+  if (err) toast('❌ Eroare la salvare: ' + err.message);
   else { toast(currentDocId ? '✅ Document modificat!' : '✅ Document salvat!'); goBack(); }
 }
 async function deleteDoc() { closeModal('m-del-doc'); await sb.from('documents').delete().eq('id', currentDocId); toast('🗑️ Document șters'); goBack(); }

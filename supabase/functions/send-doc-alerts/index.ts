@@ -11,16 +11,43 @@ const VAPID_SUBJECT = Deno.env.get("VAPID_SUBJECT") ?? "mailto:admin@docAlert.ro
 const TIMEZONE = Deno.env.get("TIMEZONE") ?? "Europe/Bucharest";
 const GMAIL_USER = Deno.env.get("GMAIL_USER");
 const GMAIL_APP_PASSWORD = Deno.env.get("GMAIL_APP_PASSWORD");
+// URL aplicație — configurabil din env, fallback la GitHub Pages
+const APP_URL = Deno.env.get("APP_URL") ?? "https://Alexandru7604.github.io/doc-alert";
 
 webpush.setVapidDetails(VAPID_SUBJECT, VAPID_PUBLIC, VAPID_PRIVATE);
 
 function getLocalDateAndHour(tz: string): { date: string; hour: number } {
   const now = new Date();
-  const localStr = now.toLocaleString("en-CA", { timeZone: tz, hour12: false });
-  const [datePart, timePart] = localStr.split(", ");
-  // toLocaleString poate returna "24:xx:xx" la miezul nopții — normalizăm cu % 24
-  const hour = parseInt(timePart.split(":")[0], 10) % 24;
-  return { date: datePart, hour };
+  // Folosim Intl.DateTimeFormat pentru timezone handling robust
+  const formatter = new Intl.DateTimeFormat("en-CA", {
+    timeZone: tz,
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+    hour: "2-digit",
+    hour12: false,
+  });
+  const parts = formatter.formatToParts(now);
+  const get = (type: string) => parts.find((p) => p.type === type)?.value ?? "0";
+  const date = `${get("year")}-${get("month")}-${get("day")}`;
+  const hour = parseInt(get("hour"), 10) % 24;
+  return { date, hour };
+}
+
+// Funcție helper pentru inserare în notification_log
+async function logNotification(
+  sb: ReturnType<typeof createClient>,
+  documentId: string,
+  userId: string,
+  endpoint: string,
+  date: string,
+): Promise<void> {
+  await sb.from("notification_log").insert({
+    document_id: documentId,
+    user_id: userId,
+    subscription_endpoint: endpoint,
+    sent_for_date: date,
+  });
 }
 
 function buildEmailHtml(
@@ -67,7 +94,7 @@ function buildEmailHtml(
         </tr>
       </table>
       <div style="margin-top:24px;text-align:center;">
-        <a href="https://Alexandru7604.github.io/doc-alert/?member=${memberId}&doc=${docId}&user=${userId}"
+        <a href="${APP_URL}/?member=${memberId}&doc=${docId}&user=${userId}"
            style="display:inline-block;background:#b07800;color:#fff;text-decoration:none;padding:12px 28px;border-radius:50px;font-weight:700;font-size:15px;">
           Deschide DOC Alert
         </a>
@@ -105,13 +132,39 @@ serve(async (req) => {
     return new Response(JSON.stringify({ sent: [] }), { status: 200 });
   }
 
+  // ── Batch query: aduce toate extra_emails și push_subscriptions o singură dată ──
+  const userIds = [...new Set(docs.map((d) => d.user_id))];
+
+  const { data: allExtraEmails } = await sb
+    .from("extra_emails")
+    .select("user_id, email")
+    .in("user_id", userIds);
+
+  const { data: allPushSubs } = await sb
+    .from("push_subscriptions")
+    .select("user_id, endpoint, subscription")
+    .in("user_id", userIds);
+
+  // Grupează după user_id pentru acces rapid
+  const extraEmailsByUser: Record<string, string[]> = {};
+  for (const row of allExtraEmails ?? []) {
+    if (!extraEmailsByUser[row.user_id]) extraEmailsByUser[row.user_id] = [];
+    extraEmailsByUser[row.user_id].push(row.email);
+  }
+
+  const pushSubsByUser: Record<string, { endpoint: string; subscription: Record<string, unknown> }[]> = {};
+  for (const row of allPushSubs ?? []) {
+    if (!pushSubsByUser[row.user_id]) pushSubsByUser[row.user_id] = [];
+    pushSubsByUser[row.user_id].push({ endpoint: row.endpoint, subscription: row.subscription });
+  }
+
   // Inițializează transportul Gmail SMTP (doar dacă sunt setate credențialele)
   let transporter: ReturnType<typeof nodemailer.createTransport> | null = null;
   if (GMAIL_USER && GMAIL_APP_PASSWORD) {
     transporter = nodemailer.createTransport({
       host: "smtp.gmail.com",
       port: 587,
-      secure: false, // STARTTLS
+      secure: false,
       auth: { user: GMAIL_USER, pass: GMAIL_APP_PASSWORD },
     });
   }
@@ -142,12 +195,8 @@ serve(async (req) => {
     }
 
     // ── Web Push ──────────────────────────────────────────────────────────────
-    const { data: subs } = await sb
-      .from("push_subscriptions")
-      .select("endpoint, subscription")
-      .eq("user_id", doc.user_id);
-
-    if (subs && subs.length > 0) {
+    const subs = pushSubsByUser[doc.user_id] ?? [];
+    if (subs.length > 0) {
       const payload = JSON.stringify({
         title,
         body,
@@ -173,12 +222,7 @@ serve(async (req) => {
 
         try {
           await webpush.sendNotification(sub, payload);
-          await sb.from("notification_log").insert({
-            document_id: doc.id,
-            user_id: doc.user_id,
-            subscription_endpoint: endpoint,
-            sent_for_date: today,
-          });
+          await logNotification(sb, doc.id, doc.user_id, endpoint, today);
           results.push({ doc: doc.doc_type, channel: "push", endpoint, status: "sent" });
         } catch (err: unknown) {
           const status = (err as { statusCode?: number }).statusCode;
@@ -192,7 +236,6 @@ serve(async (req) => {
 
     // ── Email Gmail SMTP ──────────────────────────────────────────────────────
     if (transporter) {
-      // Folosim "email:<user_id>" ca cheie unică în notification_log pentru email
       const emailKey = `email:${doc.user_id}`;
 
       const { data: emailAlreadySent } = await sb
@@ -204,29 +247,23 @@ serve(async (req) => {
         .maybeSingle();
 
       if (!emailAlreadySent) {
-        // Obține emailul utilizatorului din Supabase Auth (necesită service role key)
+        // Emailul principal al contului
         const { data: userData } = await sb.auth.admin.getUserById(doc.user_id);
         const userEmail = userData?.user?.email;
 
-        // Colectează toate adresele: emailul principal + emailurile extra
+        // Colectează toate adresele: principal + extra
         const allEmails: string[] = [];
         if (userEmail) allEmails.push(userEmail);
-
-        const { data: extraEmails } = await sb
-          .from("extra_emails")
-          .select("email")
-          .eq("user_id", doc.user_id);
-
-        if (extraEmails && extraEmails.length > 0) {
-          for (const row of extraEmails) {
-            if (row.email && !allEmails.includes(row.email)) {
-              allEmails.push(row.email);
-            }
-          }
+        for (const email of extraEmailsByUser[doc.user_id] ?? []) {
+          if (!allEmails.includes(email)) allEmails.push(email);
         }
 
         if (allEmails.length > 0) {
-          const htmlBody = buildEmailHtml(title, memberName, doc.doc_type, doc.expiry_date, daysLeft, doc.member_id, doc.id, doc.user_id);
+          const htmlBody = buildEmailHtml(
+            title, memberName, doc.doc_type, doc.expiry_date,
+            daysLeft, doc.member_id, doc.id, doc.user_id
+          );
+
           for (const toEmail of allEmails) {
             try {
               await transporter.sendMail({
@@ -247,13 +284,9 @@ serve(async (req) => {
               });
             }
           }
-          // Marchează ca trimis (o singură înregistrare per document per zi)
-          await sb.from("notification_log").insert({
-            document_id: doc.id,
-            user_id: doc.user_id,
-            subscription_endpoint: emailKey,
-            sent_for_date: today,
-          });
+
+          // Marchează ca trimis o singură dată per document per zi
+          await logNotification(sb, doc.id, doc.user_id, emailKey, today);
         }
       }
     }

@@ -1,18 +1,22 @@
 const BASE = self.location.pathname.includes('/doc-alert/')
   ? '/doc-alert'
   : '';
-const CACHE = 'doc-alert-v2';
-const ASSETS = [
+const CACHE = 'doc-alert-v3';
+const HTML_ASSETS = [
   `${BASE}/`,
   `${BASE}/index.html`,
+];
+const STATIC_ASSETS = [
   `${BASE}/manifest.json`,
   `${BASE}/icon-192.png`,
   `${BASE}/icon-512.png`,
 ];
+
+// La instalare — cache doar asset-urile statice
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE).then(async (cache) => {
-      for (const asset of ASSETS) {
+      for (const asset of [...HTML_ASSETS, ...STATIC_ASSETS]) {
         try {
           await cache.add(asset);
         } catch (err) {
@@ -23,24 +27,61 @@ self.addEventListener('install', (event) => {
   );
   self.skipWaiting();
 });
+
+// La activare — șterge cache-urile vechi
 self.addEventListener('activate', (event) => {
-  event.waitUntil(clients.claim());
-});
-self.addEventListener('fetch', (event) => {
-  if (event.request.method !== 'GET') return;
-  event.respondWith(
-    caches.match(event.request).then((cached) => {
-      if (cached) return cached;
-      return fetch(event.request);
-    })
+  event.waitUntil(
+    caches.keys().then((keys) =>
+      Promise.all(keys.filter((k) => k !== CACHE).map((k) => caches.delete(k)))
+    ).then(() => clients.claim())
   );
 });
+
+// Strategie fetch:
+// - HTML: network-first (utilizatorul vede mereu versiunea nouă)
+// - Assets statice: cache-first (imagini, manifest)
+self.addEventListener('fetch', (event) => {
+  if (event.request.method !== 'GET') return;
+
+  const url = new URL(event.request.url);
+  const isHtml = HTML_ASSETS.some(a => url.pathname === a || url.pathname === a + '/');
+
+  if (isHtml) {
+    // Network-first pentru HTML
+    event.respondWith(
+      fetch(event.request)
+        .then((res) => {
+          const clone = res.clone();
+          caches.open(CACHE).then((cache) => cache.put(event.request, clone));
+          return res;
+        })
+        .catch(() => caches.match(event.request))
+    );
+  } else {
+    // Cache-first pentru assets statice
+    event.respondWith(
+      caches.match(event.request).then((cached) => {
+        if (cached) return cached;
+        return fetch(event.request).then((res) => {
+          if (res.ok) {
+            const clone = res.clone();
+            caches.open(CACHE).then((cache) => cache.put(event.request, clone));
+          }
+          return res;
+        });
+      })
+    );
+  }
+});
+
+// Afișează notificarea push primită
 self.addEventListener('push', (event) => {
   let data = {};
   try {
     data = event.data ? event.data.json() : {};
   } catch {
-    data = { title: 'DOC Alert', body: event.data?.text() || '' };
+    const text = event.data ? event.data.text() : '';
+    data = { title: 'DOC Alert', body: text };
   }
   event.waitUntil(
     self.registration.showNotification(data.title || 'DOC Alert', {
@@ -55,6 +96,8 @@ self.addEventListener('push', (event) => {
     })
   );
 });
+
+// La click pe notificare — deschide sau focusează aplicația
 self.addEventListener('notificationclick', (event) => {
   event.notification.close();
   const targetUrl = event.notification.data?.url || `${BASE}/`;
@@ -63,7 +106,11 @@ self.addEventListener('notificationclick', (event) => {
       for (const client of list) {
         if ('focus' in client) {
           client.focus();
-          if ('navigate' in client) return client.navigate(targetUrl);
+          try {
+            if ('navigate' in client) return client.navigate(targetUrl);
+          } catch (e) {
+            console.warn('navigate() failed:', e);
+          }
           return client;
         }
       }
@@ -71,27 +118,3 @@ self.addEventListener('notificationclick', (event) => {
     })
   );
 });
-
-
-self.addEventListener("message", async (event) => {
-  if (event.data === "check-docs") {
-    try {
-      const res = await fetch("https://fxcgjvsvjfshbaepyic.supabase.co/functions/v1/send-doc-alerts", {
-        method: "POST"
-      })
-
-      const data = await res.json()
-
-      if (data.notifications && data.notifications.length > 0) {
-        for (const n of data.notifications) {
-          self.registration.showNotification(n.title, {
-            body: n.body,
-            icon: "icon-192.png"
-          })
-        }
-      }
-    } catch (err) {
-      console.error("Error checking docs:", err)
-    }
-  }
-})
