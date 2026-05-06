@@ -425,15 +425,13 @@ async function subscribePush() {
       sub = null;
     }
 
-    // Șterge orice subscripție veche a acestui user din Supabase
-    await sb.from('push_subscriptions').delete().eq('user_id', user.id);
-
-    // Creează subscripție nouă
+    // Creează subscripție nouă pentru acest dispozitiv
     sub = await reg.pushManager.subscribe({
       userVisibleOnly: true,
       applicationServerKey: urlBase64ToUint8Array(VAPID_PUBLIC)
     });
 
+    // Inserează doar subscripția acestui dispozitiv (fără să ștergi celelalte)
     const { error } = await sb.from('push_subscriptions').insert({
       user_id: user.id,
       endpoint: sub.endpoint,
