@@ -59,6 +59,7 @@ function buildEmailHtml(
   memberId: string,
   docId: string,
   userId: string,
+  mentiuni: string,
 ): string {
   const icon = daysLeft <= 0 ? "⛔" : "⚠️";
   const statusColor = daysLeft < 0 ? "#e17055" : daysLeft === 0 ? "#e17055" : daysLeft <= 7 ? "#e6a817" : "#00b894";
@@ -88,6 +89,10 @@ function buildEmailHtml(
           <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;color:#636e72;font-size:13px;width:45%;">Tip document</td>
           <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-weight:700;">${docType}</td>
         </tr>
+        ${mentiuni ? `<tr>
+          <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;color:#636e72;font-size:13px;">Mențiuni</td>
+          <td style="padding:10px 0;border-bottom:1px solid #f0f0f0;font-weight:700;">${mentiuni}</td>
+        </tr>` : ""}
         <tr>
           <td style="padding:10px 0;color:#636e72;font-size:13px;">Data expirare</td>
           <td style="padding:10px 0;font-weight:700;color:${statusColor};">${expiryDate}</td>
@@ -179,19 +184,20 @@ serve(async (req) => {
     if (doc.notify_hour !== currentHour) continue;
 
     const memberName = (doc.members as { name?: string } | null)?.name ?? "";
+    const mentiuni = doc.mentiuni ?? "";
 
     let title: string;
     let body: string;
 
     if (daysLeft < 0) {
-      title = `⛔ DOC Alert — ${doc.doc_type} EXPIRAT`;
-      body = `${memberName ? memberName + ": " : ""}${doc.doc_type} a expirat de ${Math.abs(daysLeft)} zile!`;
+      title = `⛔ DOC Alert — ${doc.doc_type} EXPIRAT${mentiuni ? " — " + mentiuni : ""}`;
+      body = `${memberName ? memberName + ": " : ""}${doc.doc_type}${mentiuni ? " (" + mentiuni + ")" : ""} a expirat de ${Math.abs(daysLeft)} zile!`;
     } else if (daysLeft === 0) {
-      title = `⛔ DOC Alert — ${doc.doc_type} expiră AZI`;
-      body = `${memberName ? memberName + ": " : ""}${doc.doc_type} expiră astăzi!`;
+      title = `⛔ DOC Alert — ${doc.doc_type} expiră AZI${mentiuni ? " — " + mentiuni : ""}`;
+      body = `${memberName ? memberName + ": " : ""}${doc.doc_type}${mentiuni ? " (" + mentiuni + ")" : ""} expiră astăzi!`;
     } else {
-      title = `⚠️ DOC Alert — ${doc.doc_type}`;
-      body = `${memberName ? memberName + ": " : ""}${doc.doc_type} expiră în ${daysLeft} zile (${doc.expiry_date})`;
+      title = `⚠️ DOC Alert — ${doc.doc_type}${mentiuni ? " — " + mentiuni : ""}`;
+      body = `${memberName ? memberName + ": " : ""}${doc.doc_type}${mentiuni ? " (" + mentiuni + ")" : ""} expiră în ${daysLeft} zile (${doc.expiry_date})`;
     }
 
     // ── Web Push ──────────────────────────────────────────────────────────────
@@ -261,7 +267,7 @@ serve(async (req) => {
         if (allEmails.length > 0) {
           const htmlBody = buildEmailHtml(
             title, memberName, doc.doc_type, doc.expiry_date,
-            daysLeft, doc.member_id, doc.id, doc.user_id
+            daysLeft, doc.member_id, doc.id, doc.user_id, mentiuni
           );
 
           for (const toEmail of allEmails) {
