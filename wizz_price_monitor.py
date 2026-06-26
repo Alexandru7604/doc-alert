@@ -333,6 +333,16 @@ def main():
         sys.stdout.reconfigure(encoding="utf-8")
     except Exception:
         pass
+    # mod TEST: trimite un push de proba si iese (verificare lant cloud->telefon)
+    if os.environ.get("MONITOR_TEST", "").lower() in ("1", "true", "yes"):
+        now = dt.datetime.now().strftime("%d %b %H:%M")
+        title = "Wizz monitor - TEST din cloud"
+        body = (f"Test {now}. Daca vezi asta, alerta cloud->telefon merge. "
+                f"La un pret real sub {DEFAULT_THRESHOLD} vei primi exact asa.")
+        ok = push_ntfy(title, body, buy=True)
+        email_alert(title, body)
+        print(f">>> TEST push trimis: ntfy={'OK' if ok else 'FAIL (NTFY_TOPIC lipsa?)'}")
+        return 0
     if args.scan:
         return run_scan(args.threshold)
     return run_monitor(args.threshold)

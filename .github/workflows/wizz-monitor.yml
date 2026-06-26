@@ -4,6 +4,11 @@ on:
   schedule:
     - cron: '7 */2 * * *'   # la fiecare 2 ore (UTC)
   workflow_dispatch:          # buton manual "Run workflow"
+    inputs:
+      test:
+        description: 'Trimite doar un push de test pe telefon'
+        type: boolean
+        default: false
 
 permissions:
   contents: read
@@ -37,4 +42,5 @@ jobs:
       - name: Check price + alert
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
+          MONITOR_TEST: ${{ inputs.test }}
         run: python wizz_price_monitor.py
