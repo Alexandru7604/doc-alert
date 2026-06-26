@@ -328,8 +328,12 @@ def run_scan(threshold: int):
 def main():
     ap = argparse.ArgumentParser(description="Monitor pret zbor Wizz OTP-VLC (via Google Flights)")
     ap.add_argument("--scan", action="store_true", help="scaneaza zile vecine pentru cel mai ieftin")
-    ap.add_argument("--threshold", type=int, default=DEFAULT_THRESHOLD,
-                    help=f"prag alerta in {CURRENCY} (default {DEFAULT_THRESHOLD})")
+    try:
+        env_target = int(os.environ.get("PRICE_TARGET", "") or DEFAULT_THRESHOLD)
+    except ValueError:
+        env_target = DEFAULT_THRESHOLD
+    ap.add_argument("--threshold", type=int, default=env_target,
+                    help=f"prag alerta in {CURRENCY} (env PRICE_TARGET, default {DEFAULT_THRESHOLD})")
     args = ap.parse_args()
     # consola UTF-8 (diacritice / nume aeroporturi)
     try:

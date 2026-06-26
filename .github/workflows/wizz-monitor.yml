@@ -43,4 +43,5 @@ jobs:
         env:
           NTFY_TOPIC: ${{ secrets.NTFY_TOPIC }}
           MONITOR_TEST: ${{ inputs.test }}
+          PRICE_TARGET: ${{ vars.PRICE_TARGET }}
         run: python wizz_price_monitor.py
