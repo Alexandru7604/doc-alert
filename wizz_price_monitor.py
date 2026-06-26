@@ -208,11 +208,14 @@ def push_ntfy(title: str, body: str, buy: bool):
     if not topic:
         return False
     url = topic if topic.startswith("http") else "https://ntfy.sh/" + topic
+    # tap pe notificare -> pagina Wizz de cumparare, exact acest zbor/date/pax
+    wizz_link = (f"https://wizzair.com/en-gb/booking/select-flight/"
+                 f"{ORIGIN}/{DEST}/{OUT_DATE}/{RET_DATE}/{ADULTS}/{CHILDREN}/0")
     headers = {
         "Title": title.encode("utf-8"),
         "Priority": "urgent" if buy else "default",
         "Tags": "airplane,money" if buy else "airplane",
-        "Click": "https://www.google.com/travel/flights",
+        "Click": wizz_link,
     }
     try:
         req = urllib.request.Request(url, data=body.encode("utf-8"), headers=headers)
