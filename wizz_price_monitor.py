@@ -43,15 +43,20 @@ from fast_flights.parser import parse
 from playwright.sync_api import sync_playwright
 
 # ------------------------- CONFIG zborul tau -------------------------
+# Urmarim STRICT cele 2 zboruri exacte (pe ora de plecare), nu cel mai ieftin combo:
+#   dus  11 nov 07:10  W4 3185
+#   intors 14 nov 19:05 W4 3208
 ORIGIN = "OTP"          # Bucuresti Otopeni
 DEST = "VLC"            # Valencia
 OUT_DATE = "2026-11-11"  # dus
 RET_DATE = "2026-11-14"  # intors
+OUT_TIME = (7, 10)       # ora plecare dus (W4 3185)
+RET_TIME = (19, 5)       # ora plecare intors (W4 3208)
 ADULTS = 3
 CHILDREN = 0            # 17 ani = tarif adult la Wizz, deci ramane la ADULTS
 CURRENCY = "RON"
-DEFAULT_THRESHOLD = 1500  # alerteaza cand total <= asta (tinta ta; actual e 1674).
-                          # In plus, alerteaza intotdeauna la un minim nou, oricat de mic.
+DEFAULT_THRESHOLD = 1800  # alerteaza cand totalul celor 2 zboruri <= asta.
+                          # In plus, alerteaza intotdeauna la un minim nou. Actual ~1965.
 
 HERE = Path(__file__).resolve().parent
 HISTORY = HERE / "price_history.csv"
@@ -127,6 +132,38 @@ def cheapest(url: str, page) -> dict | None:
     wizz = [r for r in rows if r["type"] == "W4" or any("Wizz" in a for a in r["airlines"])]
     pool = wizz if wizz else rows
     return min(pool, key=lambda r: r["price"])
+
+
+def leg_url(date: str, frm: str, to: str) -> str:
+    """URL Google Flights one-way pentru un singur segment."""
+    q = create_query(
+        flights=[FlightQuery(date=date, from_airport=frm, to_airport=to, max_stops=0)],
+        trip="one-way",
+        seat="economy",
+        passengers=Passengers(adults=ADULTS, children=CHILDREN),
+        currency=CURRENCY,
+        language="en-GB",
+    )
+    return GF_URL + "?" + urllib.parse.urlencode(q.params())
+
+
+def leg_price(page, date: str, frm: str, to: str, want_time: tuple[int, int]) -> int | None:
+    """Pretul (total ADULTS pax) al zborului Wizz care pleaca EXACT la want_time. None daca lipseste."""
+    html = fetch_html(page, leg_url(date, frm, to))
+    res = parse(html)
+    for f in res:
+        try:
+            price = int(f.price)
+        except (TypeError, ValueError):
+            continue
+        if getattr(f, "type", "") != "W4":
+            continue
+        leg = (getattr(f, "flights", []) or [None])[0]
+        d = getattr(leg, "departure", None) if leg is not None else None
+        t = getattr(d, "time", None) if d is not None else None
+        if t and tuple(t) == tuple(want_time):
+            return price
+    return None
 
 
 def log_history(price: int, label: str):
@@ -227,29 +264,35 @@ def push_ntfy(title: str, body: str, buy: bool):
 
 
 def run_monitor(threshold: int):
-    label = f"{ORIGIN}-{DEST} {OUT_DATE}/{RET_DATE} {ADULTS}pax"
-    url = build_url(OUT_DATE, RET_DATE)
+    ot = f"{OUT_TIME[0]:02d}:{OUT_TIME[1]:02d}"
+    rt = f"{RET_TIME[0]:02d}:{RET_TIME[1]:02d}"
+    label = f"{ORIGIN}-{DEST} {OUT_DATE} {ot} / {RET_DATE} {rt} {ADULTS}pax"
     with sync_playwright() as p:
         b = p.chromium.launch(headless=True)
         ctx = b.new_context(locale="en-GB", user_agent=(
             "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 "
             "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"))
         page = ctx.new_page()
-        best = cheapest(url, page)
+        out_p = leg_price(page, OUT_DATE, ORIGIN, DEST, OUT_TIME)
+        ret_p = leg_price(page, RET_DATE, DEST, ORIGIN, RET_TIME)
         b.close()
 
-    if not best:
-        print("Nu am putut citi pretul (Google a schimbat pagina sau nicio cursa directa).")
+    if out_p is None or ret_p is None:
+        miss = []
+        if out_p is None:
+            miss.append(f"dus {ot}")
+        if ret_p is None:
+            miss.append(f"intors {rt}")
+        print(f"Nu am gasit zborul/zborurile exacte: {', '.join(miss)} "
+              f"(ora schimbata sau cursa anulata).")
         return 2
 
-    price = best["price"]
+    price = out_p + ret_p
     prev_min = min_seen()       # cel mai mic vazut vreodata (inainte de a loga acum)
     prev_price = last_price()   # pretul de la rularea anterioara
     log_history(price, label)
-    dep = best["dep_time"]
-    dep_s = f"{dep[0]:02d}:{dep[1]:02d}" if dep else "?"
-    line = (f"{label}: {price} {CURRENCY}  ({'Wizz' if best['type']=='W4' else best['airlines']}, "
-            f"dus {dep_s})")
+    line = (f"{label}: {price} {CURRENCY}  "
+            f"(dus {ot} {out_p} + intors {rt} {ret_p})")
     print(line)
     if prev_min is not None:
         print(f"minim vazut anterior: {prev_min} {CURRENCY}")
