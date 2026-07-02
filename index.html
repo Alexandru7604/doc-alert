@@ -134,6 +134,11 @@
   .mentiuni-input:focus { border-color: var(--accent); }
   .char-count { font-size: 11px; color: var(--text-light); text-align: right; margin-top: 4px; }
   .doc-card-mentiuni { font-size: 12px; color: #7a5000; margin-top: 4px; font-weight: 600; background: rgba(220,170,40,0.2); display: inline-block; padding: 2px 8px; border-radius: 8px; }
+  .doc-card-member { font-size: 12px; color: #8a5c00; font-weight: 700; margin-bottom: 4px; }
+  .search-wrap { position: relative; margin-bottom: 14px; }
+  .search-input { width: 100%; padding: 12px 40px 12px 16px; border: 2px solid var(--border); border-radius: var(--pill); font-size: 15px; color: var(--text); background: rgba(255,255,255,0.85); outline: none; transition: border-color 0.2s; }
+  .search-input:focus { border-color: var(--accent); }
+  .search-clear { position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; font-size: 16px; color: var(--text-light); padding: 4px; line-height: 1; }
   .doc-actions { display: flex; gap: 10px; margin-top: 24px; padding-bottom: 40px; }
   .btn-save { flex: 1; padding: 14px; background: var(--accent); color: white; border: none; border-radius: var(--pill); font-size: 15px; font-weight: 700; cursor: pointer; }
   .btn-save:hover { background: var(--accent-dark); }
@@ -323,6 +328,7 @@ const SUPA_KEY = 'sb_publishable_xtJuj_NKtzBc62bC4vkS7w_GkQousng';
 const sb = supabase.createClient(SUPA_URL, SUPA_KEY);
 let user = null, members = [], currentMember = null, currentDocId = null;
 let selType = null, selDaysVal = 20, ctxMember = null;
+let currentMemberDocs = [], searchTimer = null;
 const DEFAULT_TYPES = ['CI','ITP','Impozit','Pașaport','PC','RCA','Rovinietă'];
 let customTypes = [];
 const VAPID_PUBLIC = 'BBbtbavvZt3aEf9RzRYIGTFo5zoBxcEEbrSN8K_6Y6JuaK1yz-bv_8nZzqFVDV5ixT_JHkpec7sQihnYkw3QS58';
@@ -580,28 +586,72 @@ async function loadDocs(memberId) {
   const c = document.getElementById('main-content');
   const fixBtn = document.getElementById('btn-add-doc-fixed');
   fixBtn.classList.remove('visible');
-  c.innerHTML = `<div class="member-name">${m ? m.name : ''}</div><div class="loading"><div class="spinner"></div></div>`;
+  c.innerHTML = `<div class="member-name">${m ? m.name : ''}</div>
+    <div class="search-wrap">
+      <input type="text" id="doc-search" class="search-input" placeholder="🔍 Caută după mențiuni..." oninput="onDocSearch()" autocomplete="off">
+      <button id="search-clear" class="search-clear" onclick="clearDocSearch()" style="display:none">✕</button>
+    </div>
+    <div id="docs-list"><div class="loading"><div class="spinner"></div></div></div>`;
   const { data } = await sb.from('documents').select('*').eq('member_id', memberId).order('expiry_date', { ascending: true });
-  let html = `<div class="member-name">${m ? m.name : ''}</div>`;
-  if (!data || data.length === 0) {
-    html += `<div class="empty-state"><div class="empty-icon">📄</div><p>Niciun document adăugat.<br>Apasă butonul de mai jos!</p></div>`;
-  } else {
-    data.forEach(doc => {
-      const days = daysUntil(doc.expiry_date);
-      const cls = days > 30 ? 'c-green' : days > 15 ? 'c-yellow' : 'c-red';
-      const isUrgent = days <= 15;
-      const urgentBadge = isUrgent ? `<div class="doc-urgent-badge">⚠️ URGENT</div>` : '';
-      const mentiuniHtml = doc.mentiuni ? `<div class="doc-card-mentiuni">📝 ${doc.mentiuni}</div>` : '';
-      html += `<div class="doc-card${isUrgent ? ' urgent' : ''}" onclick="openDoc('${doc.id}')">
-        <div>${urgentBadge}<div class="doc-card-name">${doc.doc_type}</div><div class="doc-card-date">Expiră: ${fmtDate(doc.expiry_date)}</div>${mentiuniHtml}</div>
-        <div class="doc-circle ${cls}"><span class="dn">${days}</span><span class="dl">zile</span></div>
-      </div>`;
-    });
-  }
-  c.innerHTML = html;
+  currentMemberDocs = data || [];
+  renderDocsList(currentMemberDocs, false);
   fixBtn.classList.add('visible');
   const urlDoc = new URLSearchParams(window.location.search).get('doc');
-  if (urlDoc && data && data.find(d => d.id === urlDoc)) openDoc(urlDoc);
+  if (urlDoc && currentMemberDocs.find(d => d.id === urlDoc)) openDoc(urlDoc);
+}
+function memberNameById(id) { const m = members.find(x => x.id === id); return m ? m.name : ''; }
+function docCardHtml(doc, showMember) {
+  const days = daysUntil(doc.expiry_date);
+  const cls = days > 30 ? 'c-green' : days > 15 ? 'c-yellow' : 'c-red';
+  const isUrgent = days <= 15;
+  const urgentBadge = isUrgent ? `<div class="doc-urgent-badge">⚠️ URGENT</div>` : '';
+  const mentiuniHtml = doc.mentiuni ? `<div class="doc-card-mentiuni">📝 ${doc.mentiuni}</div>` : '';
+  const memberBadge = showMember ? `<div class="doc-card-member">👤 ${(doc.members && doc.members.name) || memberNameById(doc.member_id)}</div>` : '';
+  return `<div class="doc-card${isUrgent ? ' urgent' : ''}" onclick="openDoc('${doc.id}')">
+    <div>${urgentBadge}${memberBadge}<div class="doc-card-name">${doc.doc_type}</div><div class="doc-card-date">Expiră: ${fmtDate(doc.expiry_date)}</div>${mentiuniHtml}</div>
+    <div class="doc-circle ${cls}"><span class="dn">${days}</span><span class="dl">zile</span></div>
+  </div>`;
+}
+function renderDocsList(data, showMember) {
+  const list = document.getElementById('docs-list');
+  if (!list) return;
+  if (!data || data.length === 0) {
+    list.innerHTML = showMember
+      ? `<div class="empty-state"><div class="empty-icon">🔍</div><p>Niciun document găsit</p></div>`
+      : `<div class="empty-state"><div class="empty-icon">📄</div><p>Niciun document adăugat.<br>Apasă butonul de mai jos!</p></div>`;
+    return;
+  }
+  list.innerHTML = data.map(doc => docCardHtml(doc, showMember)).join('');
+}
+function onDocSearch() {
+  const inp = document.getElementById('doc-search');
+  if (!inp) return;
+  const term = inp.value.trim();
+  const clearBtn = document.getElementById('search-clear');
+  if (clearBtn) clearBtn.style.display = term ? 'block' : 'none';
+  clearTimeout(searchTimer);
+  if (!term) { renderDocsList(currentMemberDocs, false); return; }
+  searchTimer = setTimeout(() => runGlobalSearch(term), 250);
+}
+async function runGlobalSearch(term) {
+  const list = document.getElementById('docs-list');
+  if (list) list.innerHTML = `<div class="loading"><div class="spinner"></div></div>`;
+  const { data } = await sb.from('documents')
+    .select('*, members(name)')
+    .eq('user_id', user.id)
+    .ilike('mentiuni', `%${term}%`)
+    .order('expiry_date', { ascending: true });
+  // input s-ar putea schimba în timpul query-ului — ignoră rezultatul învechit
+  const cur = document.getElementById('doc-search');
+  if (!cur || cur.value.trim() !== term) return;
+  renderDocsList(data || [], true);
+}
+function clearDocSearch() {
+  const inp = document.getElementById('doc-search');
+  if (inp) inp.value = '';
+  const clearBtn = document.getElementById('search-clear');
+  if (clearBtn) clearBtn.style.display = 'none';
+  renderDocsList(currentMemberDocs, false);
 }
 function daysUntil(d) { const t = new Date(); t.setHours(0,0,0,0); return Math.ceil((new Date(d) - t) / 86400000); }
 function fmtDate(d) { return new Date(d).toLocaleDateString('ro-RO', { day: '2-digit', month: '2-digit', year: 'numeric' }); }
@@ -624,6 +674,7 @@ async function openDoc(id) {
   currentDocId = id;
   const { data } = await sb.from('documents').select('*').eq('id', id).single();
   if (!data) return;
+  currentMember = data.member_id; // sincronizează membrul (poate veni din căutare globală)
   selType = data.doc_type; selDaysVal = data.alert_days;
   document.getElementById('doc-title').textContent = data.doc_type;
   document.getElementById('type-text').textContent = data.doc_type;
@@ -699,7 +750,7 @@ async function deleteDoc() {
   toast('🗑️ Document șters');
   goBack();
 }
-function goBack() { showScreen('main'); loadDocs(currentMember); }
+function goBack() { showScreen('main'); renderTabs(); loadDocs(currentMember); }
 function openModal(id) { document.getElementById(id).classList.add('open'); const inp = document.querySelector('#' + id + ' input'); if (inp) setTimeout(() => inp.focus(), 100); }
 function closeModal(id) { document.getElementById(id).classList.remove('open'); }
 document.querySelectorAll('.overlay').forEach(o => o.addEventListener('click', function(e) { if (e.target === this) this.classList.remove('open'); }));
