@@ -317,8 +317,14 @@
   <div class="modal">
     <h3>🔑 Schimbă parola</h3>
     <p>Introdu parola nouă (minim 6 caractere).</p>
-    <input type="password" id="cp-pass" placeholder="Parolă nouă" autocomplete="new-password">
-    <input type="password" id="cp-pass2" placeholder="Repetă parola" autocomplete="new-password">
+    <div class="pass-wrap" style="margin-bottom:16px;">
+      <input type="password" id="cp-pass" placeholder="Parolă nouă" autocomplete="new-password" style="margin-bottom:0;padding-right:48px;">
+      <button class="eye-btn" type="button" onclick="togglePass('cp-pass',this)">👁️</button>
+    </div>
+    <div class="pass-wrap" style="margin-bottom:16px;">
+      <input type="password" id="cp-pass2" placeholder="Repetă parola" autocomplete="new-password" style="margin-bottom:0;padding-right:48px;">
+      <button class="eye-btn" type="button" onclick="togglePass('cp-pass2',this)">👁️</button>
+    </div>
     <div class="modal-btns">
       <button class="btn-cancel" onclick="closeModal('m-change-pass')">Anulează</button>
       <button class="btn-confirm" onclick="changePassword()">Salvează</button>
