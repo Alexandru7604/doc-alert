@@ -204,6 +204,7 @@
     <div style="display:flex;gap:8px;align-items:center">
       <button class="btn-addmail visible" id="btn-addmail" onclick="openMailModal()">✉️ Add Mail</button>
       <button class="btn-notif" id="btn-notif" onclick="askPushPermission()">🔔 Notificări</button>
+      <button class="btn-logout" onclick="openModal('m-change-pass')">🔑 Parolă</button>
       <button class="btn-logout" onclick="doLogout()">🚪 Log out</button>
     </div>
   </div>
@@ -312,6 +313,18 @@
     </div>
   </div>
 </div>
+<div class="overlay" id="m-change-pass">
+  <div class="modal">
+    <h3>🔑 Schimbă parola</h3>
+    <p>Introdu parola nouă (minim 6 caractere).</p>
+    <input type="password" id="cp-pass" placeholder="Parolă nouă" autocomplete="new-password">
+    <input type="password" id="cp-pass2" placeholder="Repetă parola" autocomplete="new-password">
+    <div class="modal-btns">
+      <button class="btn-cancel" onclick="closeModal('m-change-pass')">Anulează</button>
+      <button class="btn-confirm" onclick="changePassword()">Salvează</button>
+    </div>
+  </div>
+</div>
 <div class="overlay" id="m-del-doc">
   <div class="modal">
     <h3>🗑️ Șterge document</h3><p>Ești sigur că vrei să ștergi acest document?</p>
@@ -351,9 +364,26 @@ async function init() {
     }
   }
   sb.auth.onAuthStateChange((ev, s) => {
-    if (ev === 'SIGNED_IN') { user = s.user; showScreen('main'); loadMembers(); initPush(); }
+    if (ev === 'PASSWORD_RECOVERY') {
+      user = s.user; showScreen('main'); loadMembers(); initPush();
+      setTimeout(() => openModal('m-change-pass'), 400);
+      toast('🔑 Setează o parolă nouă');
+    }
+    else if (ev === 'SIGNED_IN') { user = s.user; showScreen('main'); loadMembers(); initPush(); }
     else if (ev === 'SIGNED_OUT') { user = null; showScreen('login'); }
   });
+}
+async function changePassword() {
+  const p1 = document.getElementById('cp-pass').value;
+  const p2 = document.getElementById('cp-pass2').value;
+  if (!p1 || p1.length < 6) return toast('⚠️ Parola: minim 6 caractere');
+  if (p1 !== p2) return toast('⚠️ Parolele nu coincid');
+  const { error } = await sb.auth.updateUser({ password: p1 });
+  if (error) return toast('❌ ' + error.message);
+  document.getElementById('cp-pass').value = '';
+  document.getElementById('cp-pass2').value = '';
+  closeModal('m-change-pass');
+  toast('✅ Parolă schimbată! Folosește-o la următorul login.');
 }
 
 function urlBase64ToUint8Array(b) {
